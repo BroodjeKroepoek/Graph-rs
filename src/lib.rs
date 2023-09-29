@@ -2,7 +2,7 @@ use std::{
     collections::{btree_map::Entry, BTreeMap, BTreeSet},
     error::Error,
     fmt::{Debug, Display},
-    ops::{Index, IndexMut},
+    ops::{Index, IndexMut, Mul},
 };
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
@@ -26,6 +26,12 @@ impl<T: Ord> From<T> for Vertex<T> {
     /// ```
     fn from(value: T) -> Self {
         Self(value)
+    }
+}
+
+impl<T: Ord> From<(Vertex<T>, Vertex<T>)> for Vertex<(T, T)> {
+    fn from(value: (Vertex<T>, Vertex<T>)) -> Self {
+        Self((value.0 .0, value.1 .0))
     }
 }
 
@@ -139,7 +145,7 @@ impl<T: Copy + Ord + Debug> Error for InsertVertexError<T> {}
 
 impl<T: Copy + Ord + Debug> Error for InsertEdgeError<T> {}
 
-impl<T: Ord + Debug + Copy + Display> Graph<T> {
+impl<T: Ord + Debug + Copy> Graph<T> {
     /// Constructs a new Graph
     pub fn new() -> Self {
         Self(BTreeMap::new())
@@ -271,7 +277,7 @@ impl Graph<usize> {
         }
         output
             .insert_edge(Edge(Vertex(0), Vertex(size - 1)))
-            .unwrap();
+            .unwrap_or_else(|_| {});
         output
     }
 }
@@ -291,5 +297,24 @@ impl<T: Ord + Display + Copy> Display for Graph<T> {
             write!(f, "]\n")?;
         }
         Ok(())
+    }
+}
+
+impl<T: Ord + Debug + Copy + Display> Mul<Graph<T>> for Graph<T> {
+    type Output = Graph<(T, T)>;
+
+    fn mul(self, rhs: Graph<T>) -> Self::Output {
+        let mut output = Graph::new();
+        for (vertex_1, _adj_1) in &self.0 {
+            for (vertex_2, _adj_2) in &rhs.0 {
+                output
+                    .insert_vertex((vertex_1.0.clone(), vertex_2.0.clone()).into())
+                    .unwrap_or_else(|_| {});
+                output
+                    .insert_vertex((vertex_2.0.clone(), vertex_1.0.clone()).into())
+                    .unwrap_or_else(|_| {});
+            }
+        }
+        output
     }
 }

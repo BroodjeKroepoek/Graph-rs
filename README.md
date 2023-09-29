@@ -8,4 +8,5 @@ to-do
 
 ## Milestones
 
-to-do
+- [ ] Being able to parse a Graph from `.dot` files.
+- [ ] Being able to serialize a Graph into a `.dot` file.
