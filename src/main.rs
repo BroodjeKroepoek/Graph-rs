@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use lib::Graph;
+use graph::Graph;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let graph: Graph<usize> = Graph::new_cyclic_graph(2);

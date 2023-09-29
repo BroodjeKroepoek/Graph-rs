@@ -16,7 +16,7 @@ impl<T: Ord + Display + Copy> Display for Vertex<T> {
 
 impl<T: Ord> From<T> for Vertex<T> {
     /// ```
-    /// use lib::Graph;
+    /// use graph::Graph;
     ///
     /// let mut graph: Graph<&str> = Graph::new();
     /// graph.insert_vertex("Like this!".into()).unwrap();
@@ -40,7 +40,7 @@ pub struct Edge<T: Ord>(pub Vertex<T>, pub Vertex<T>);
 
 impl<T: Ord> From<(T, T)> for Edge<T> {
     /// ```
-    /// use lib::Graph;
+    /// use graph::Graph;
     ///
     /// let mut graph: Graph<&str> = Graph::new();
     /// graph.insert_vertex("Like this!".into()).unwrap();
@@ -62,7 +62,7 @@ impl<T: Ord + Copy> Index<Vertex<T>> for Graph<T> {
     /// Allows for indexing. The vertex you're indexing must exist, else panic.
     ///
     /// ```
-    /// use lib::{Graph, Vertex};
+    /// use graph::{Graph, Vertex};
     ///
     /// let mut graph: Graph<&str> = Graph::new();
     /// graph.insert_vertex(Vertex("Hello, World!")).unwrap();
@@ -77,7 +77,7 @@ impl<T: Ord + Copy> IndexMut<Vertex<T>> for Graph<T> {
     /// Allows for mutating by index. The vertex you're indexing by must exist, else panic.
     ///
     /// ```
-    /// use lib::{Graph, Vertex};
+    /// use graph::{Graph, Vertex};
     ///
     /// let mut graph: Graph<&str> = Graph::new();
     /// graph.insert_vertex(Vertex("Hello, World!"));
@@ -217,7 +217,7 @@ impl<T: Ord + Debug + Copy> Graph<T> {
     /// Depth-first traversal starting from a specific vertex
     ///
     /// ```
-    /// use lib::{Graph, Vertex};
+    /// use graph::{Graph, Vertex};
     ///
     /// let graph: Graph<usize> = Graph::new_cyclic_graph(5);
     /// let order = graph.depth_first_vertex_traversal_recursive(Vertex(0));
