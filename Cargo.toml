@@ -2,10 +2,15 @@
 name = "graph"
 version = "0.1.0"
 edition = "2021"
+authors = ["Arno Werkman"]
+description = "Library implementing a Graph data structure in Rust."
+repository = "https://github.com/BroodjeKroepoek/Graph-rs"
+readme = "README.md"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+thiserror = "1.0.49"
 
 [lib]
-path = "src/lib.rs"
