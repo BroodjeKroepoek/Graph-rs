@@ -1,3 +1,59 @@
+//! # Graph Library
+//!
+//! This library provides a generic graph data structure and associated operations.
+//!
+//! ## Overview
+//!
+//! - A `Graph<T>` represents a graph where `T` is the type of data associated with each vertex.
+//! - Vertices are of type `Vertex<T>` and edges are of type `Edge<T>`.
+//!
+//! ## Basic Usage
+//!
+//! To use this library, you can create a graph, insert vertices and edges, and perform various graph operations.
+//!
+//! ```rust
+//! use graph::{Graph, Vertex, Edge};
+//!
+//! fn main() {
+//!     let mut graph = Graph::new();
+//!
+//!     let vertex_a = Vertex("A");
+//!     let vertex_b = Vertex("B");
+//!     let edge_ab = Edge(vertex_a, vertex_b);
+//!
+//!     graph.insert_vertex(vertex_a).expect("Failed to insert vertex");
+//!     graph.insert_vertex(vertex_b).expect("Failed to insert vertex");
+//!     graph.insert_edge(edge_ab).expect("Failed to insert edge");
+//!
+//!     println!("{}", graph);
+//! }
+//! ```
+//!
+//! ## Error Handling
+//!
+//! Errors are handled using custom error types `InsertVertexError` and `InsertEdgeError`. These errors indicate issues like duplicate vertices or edges that don't exist.
+//!
+//! ## Graph Types
+//!
+//! The library provides functions to create various types of graphs:
+//!
+//! - `new_complete_graph(size)` creates a complete graph with `size` vertices.
+//! - `new_bipartite_graph(size_1, size_2)` creates a bipartite graph with two sets of vertices.
+//! - `new_cyclic_graph(size)` creates a cyclic graph.
+//! - `new_path_graph(size)` creates a path graph.
+//!
+//! ## Cartesian Product of Graphs
+//!
+//! You can compute the Cartesian product of two graphs using the `Mul` trait. This results in a new graph where each vertex is a pair of vertices from the original graphs.
+//!
+//! ## Examples
+//!
+//! For more examples and usage, refer to the documentation of specific functions and types.
+//!
+//! ## License
+//!
+//! This code is licensed under the MIT License.
+
 use std::{
     collections::{btree_map::Entry, BTreeMap, BTreeSet},
     fmt::{Debug, Display},
@@ -6,6 +62,7 @@ use std::{
 
 use thiserror::Error;
 
+/// Represents a vertex in the graph.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Vertex<T>(pub T)
 where
@@ -20,6 +77,7 @@ where
     }
 }
 
+/// Represents an edge between two vertices in the graph.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Edge<T>(pub Vertex<T>, pub Vertex<T>)
 where
@@ -34,6 +92,7 @@ where
     }
 }
 
+/// Represents a generic graph.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Graph<T>(pub BTreeMap<Vertex<T>, BTreeSet<Vertex<T>>>)
 where
@@ -60,9 +119,7 @@ where
     }
 }
 
-/// Error that can occur when inserting a Vertex into the Graph.
-///
-/// TODO: One cause, so maybe use Option<_> instead of an explicit error.
+/// Error that can occur when inserting a vertex into the graph.
 #[derive(Debug, Error)]
 pub enum InsertVertexError<T>
 where
@@ -72,7 +129,7 @@ where
     VertexExistsError(Vertex<T>),
 }
 
-/// Error that can occur when inserting an Edge into the Graph
+/// Error that can occur when inserting an edge into the graph.
 #[derive(Debug, Error)]
 pub enum InsertEdgeError<T>
 where
@@ -92,15 +149,14 @@ impl<T> Graph<T>
 where
     T: Copy + Debug + Ord,
 {
-    /// Constructs a new Graph
+    /// Constructs a new graph.
     pub fn new() -> Self {
         Self(BTreeMap::new())
     }
 
-    /// Inserts a Vertex into the Graph
+    /// Inserts a vertex into the graph.
     ///
-    /// Returns an Error in these cases:
-    /// - The Vertex already exists.
+    /// Returns an error if the vertex already exists.
     pub fn insert_vertex(&mut self, vertex: Vertex<T>) -> Result<(), InsertVertexError<T>> {
         match self.0.entry(vertex) {
             Entry::Vacant(x) => {
@@ -111,7 +167,7 @@ where
         }
     }
 
-    /// Does an Edge exists, or not?
+    /// Checks if an edge exists.
     pub fn is_edge(&self, edge: &Edge<T>) -> bool {
         if self.is_vertex(&edge.0) && self.is_vertex(&edge.1) {
             self.0[&edge.0].contains(&edge.1) && self.0[&edge.1].contains(&edge.0)
@@ -120,16 +176,17 @@ where
         }
     }
 
+    /// Checks if a vertex exists in the graph.
     pub fn is_vertex(&self, vertex: &Vertex<T>) -> bool {
         self.0.contains_key(&vertex)
     }
 
-    /// Inserts an Edge into the Graph
+    /// Inserts an edge into the graph.
     ///
-    /// Returns an Error in these cases:
-    /// - One Vertex doesn't exist.
-    /// - Both Vertices don't exist.
-    /// - The Edge between these Vertices already exists.
+    /// Returns an error in these cases:
+    /// - One vertex doesn't exist.
+    /// - Both vertices don't exist.
+    /// - The edge between these vertices already exists.
     pub fn insert_edge(&mut self, edge: Edge<T>) -> Result<(), InsertEdgeError<T>> {
         if edge.0 == edge.1 {
             Err(InsertEdgeError::TriedInsertEdgeLoop(edge))
@@ -157,7 +214,7 @@ where
         }
     }
 
-    /// Helper function for depth-first traversal
+    /// Helper function for depth-first traversal.
     pub fn depth_first_vertex_recursive(
         &self,
         current_vertex: Vertex<T>,
@@ -171,7 +228,7 @@ where
         }
     }
 
-    /// Depth-first traversal starting from a specific vertex
+    /// Depth-first traversal starting from a specific vertex.
     ///
     /// ```
     /// use graph::{Graph, Vertex};
@@ -193,9 +250,9 @@ where
 }
 
 impl Graph<usize> {
-    /// Constructs a new complete Graph of size: `size`
+    /// Constructs a new complete graph of size: `size`.
     ///
-    /// Every vertex in 0..size is adjacent to every other vertex
+    /// Every vertex in the range 0..size is adjacent to every other vertex.
     pub fn new_complete_graph(size: usize) -> Self {
         let mut output = Graph::new();
         for i in 0..size {
@@ -208,10 +265,10 @@ impl Graph<usize> {
         output
     }
 
-    /// Constructs a new bipartite Graph of sizes: `size_1` and `size_2`
+    /// Constructs a new bipartite graph with sizes: `size_1` and `size_2`.
     ///
-    /// There are two disjoint ranges A := 0..size_1 and B := size_1..size_1+size_2
-    /// All Edges between the vertices of A and B exist, but no Edges exist inside A itself and inside B itself.
+    /// There are two disjoint sets of vertices: A := 0..size_1 and B := size_1..size_1+size_2.
+    /// All edges between the vertices of A and B exist, but no edges exist within A or within B.
     pub fn new_bipartite_graph(size_1: usize, size_2: usize) -> Self {
         let mut output = Graph::new();
         for i in 0..size_1 {
@@ -224,7 +281,7 @@ impl Graph<usize> {
         output
     }
 
-    /// Constructs a new cyclic Graph of size: `size`
+    /// Constructs a new cyclic graph of size: `size`.
     pub fn new_cyclic_graph(size: usize) -> Self {
         let mut output = Graph::new();
         for i in 0..size - 1 {
@@ -238,7 +295,7 @@ impl Graph<usize> {
         output
     }
 
-    /// Constructs a new path Graph of size: `size`
+    /// Constructs a new path graph of size: `size`.
     pub fn new_path_graph(size: usize) -> Self {
         let mut output = Graph::new();
         for i in 0..size - 1 {
@@ -256,7 +313,7 @@ where
 {
     type Output = Graph<(T, T)>;
 
-    /// Cartesian product of graphs
+    /// Computes the Cartesian product of two graphs.
     ///
     /// See: https://en.wikipedia.org/wiki/Cartesian_product_of_graphs
     fn mul(self, rhs: Graph<T>) -> Self::Output {
